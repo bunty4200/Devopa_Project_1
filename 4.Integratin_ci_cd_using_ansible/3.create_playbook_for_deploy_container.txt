@@ -1,0 +1,70 @@
+################################################################################################################################################
+
+40 How to create container on dockerhost using ansible playbook 
+
+On ansible server create deploy playbook
+
+$ pwd /opt/docker
+
+[ansadmin@ansible-server docker]$ cat deploy_regapp.yaml
+---
+- name: This yaml file create container on docker host machine using docker hub image
+  hosts: dockerhost
+  tasks:
+  - name: create container
+    command: docker run -d --name regapp-server -p 8082:8080 bunty4200/regapp:latest
+	
+	
+$ ansible-playbook deploy.yaml --check 
+
+while running this play giving permission error so we have to give permission chmod 777 /var/run/docker.sock  on docker host machine 
+
+Now we are agine run this playbook and it's through the error container is already exesit on server.
+
+####################################################################################################################################################
+41
+
+ovecome this proble we are modify our playbook
+
+Remove existing container
+Remove existing image
+create new container
+
+
+$ cat deploy_regapp.yaml
+
+---
+- name: This playbook for create docker container on docker host
+  hosts: dockerhost
+  tasks:
+  - name: stop existing container
+    command: docker stop regapp-server
+    ignore_errors: yes
+
+  - name: remove container
+    command: docker rm regapp-server
+    ignore_errors: yes
+
+  - name: remove image
+    command: docker rmi bunty4200/regapp:latest
+    ignore_errors: yes
+
+  - name: create container
+    command: docker run -d --name regapp-server -p 8082:8080 bunty4200/regapp:latest
+
+Run playbok
+
+############################################################################################################################
+
+42 Jenkins CI/CD deploy container on docker host via ansible playbook
+
+create-job -->> Git --->> Poll SCM -->> Build (pom.xml) -->> Goals and option (clean install) -->> Post-build Actions -->> Send build artifacts over SSH
+--> ansible-server --> source files (webapp/target/*.war) --> Remove prefix (webapp/target/) --> Remote directory (//opt//docker) -->> Exec command 
+
+ansible-playbook /opt/docker/regapp.yaml;
+sleep 10;
+ansible-playbook /opt/docker/deploy_regapp.yaml
+
+
+
+####################################################
